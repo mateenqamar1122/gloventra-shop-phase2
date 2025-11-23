@@ -1,0 +1,212 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
+All colors MUST be HSL.
+*/
+
+@layer base {
+  :root {
+    /* Gloventra Brand Colors */
+    --background: 50 45% 91%; /* Cream #F5F1DC */
+    --foreground: 232 100% 20%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 232 100% 20%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 232 100% 20%;
+
+    /* Primary Blue #001BB7 */
+    --primary: 232 100% 36%;
+    --primary-foreground: 0 0% 100%;
+
+    /* Accent Blue #0046FF */
+    --secondary: 223 100% 50%;
+    --secondary-foreground: 0 0% 100%;
+
+    --muted: 50 30% 85%;
+    --muted-foreground: 232 30% 45%;
+
+    /* Orange Accent #FF8040 */
+    --accent: 17 100% 63%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 50 30% 85%;
+    --input: 50 30% 88%;
+    --ring: 232 100% 36%;
+
+    --radius: 1rem;
+
+    /* Custom Design Tokens */
+    --gradient-hero: linear-gradient(135deg, hsl(232 100% 36%), hsl(223 100% 50%));
+    --gradient-card: linear-gradient(180deg, hsl(0 0% 100%), hsl(50 45% 96%));
+    --shadow-sm: 0 2px 8px hsl(232 100% 36% / 0.08);
+    --shadow-md: 0 4px 16px hsl(232 100% 36% / 0.12);
+    --shadow-lg: 0 8px 32px hsl(232 100% 36% / 0.16);
+    --shadow-glow: 0 0 24px hsl(17 100% 63% / 0.3);
+    --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .dark {
+    --background: 232 60% 8%;
+    --foreground: 50 45% 95%;
+
+    --card: 232 50% 12%;
+    --card-foreground: 50 45% 95%;
+
+    --popover: 232 50% 12%;
+    --popover-foreground: 50 45% 95%;
+
+    --primary: 223 100% 50%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 232 40% 20%;
+    --secondary-foreground: 50 45% 95%;
+
+    --muted: 232 40% 18%;
+    --muted-foreground: 50 20% 70%;
+
+    --accent: 17 100% 63%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 62.8% 50%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 232 40% 20%;
+    --input: 232 40% 20%;
+    --ring: 223 100% 50%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+/* Premium Hero Animations */
+@layer utilities {
+  .animate-fade-in {
+    animation: fadeIn 1s ease-out forwards;
+    opacity: 0;
+  }
+
+  .animate-scale-in {
+    animation: scaleIn 0.8s ease-out forwards;
+    animation-delay: 0.3s;
+    opacity: 0;
+  }
+
+  .animate-slow-zoom {
+    animation: slowZoom 20s ease-in-out infinite alternate;
+  }
+
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes scaleIn {
+    from {
+      opacity: 0;
+      transform: scale(0.95);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+
+  @keyframes slowZoom {
+    from {
+      transform: scale(1);
+    }
+    to {
+      transform: scale(1.1);
+    }
+  }
+}
+
+  .animate-fade-in.delay-300 {
+    animation-delay: 0.3s;
+  }
+
+  .animate-fade-in.delay-500 {
+    animation-delay: 0.5s;
+  }
+
+  .animate-fade-in.delay-700 {
+    animation-delay: 0.7s;
+  }
+
+  .animate-fade-in.delay-1000 {
+    animation-delay: 1s;
+  }
+
+  .animate-scale-in {
+    animation: scaleIn 0.8s ease-out forwards;
+    opacity: 0;
+    transform: scale(0.8);
+  }
+
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(30px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes scaleIn {
+    from {
+      opacity: 0;
+      transform: scale(0.8) translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1) translateY(0);
+    }
+  }
+
+  /* Premium gradient backgrounds */
+  .bg-gradient-hero {
+    background: var(--gradient-hero);
+  }
+
+  .bg-gradient-card {
+    background: var(--gradient-card);
+  }
+
+  /* Premium shadows */
+  .shadow-premium {
+    box-shadow: var(--shadow-lg);
+  }
+
+  .shadow-glow {
+    box-shadow: var(--shadow-glow);
+  }
+
+  /* Smooth transitions */
+  .transition-premium {
+    transition: var(--transition-smooth);
+  }
+{}
+
