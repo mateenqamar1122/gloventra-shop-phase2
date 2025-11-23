@@ -1,5 +1,5 @@
-import { Link } from 'react-router-dom';
-import { ArrowRight, Package, Truck, Shield } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
+import { ArrowRight, Package, Truck, Shield, Search } from 'lucide-react';
 import ProductCard from '@/components/ProductCard';
 import { Button } from '@/components/ui/button';
 import { mockProducts } from '@/data/mockProducts';
@@ -7,10 +7,19 @@ import heroBanner from '@/assets/hero-banner.jpg';
 import { useState, useEffect } from 'react';
 
 const Home = () => {
+  const navigate = useNavigate();
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isSliding, setIsSliding] = useState(false);
+  const [heroSearchQuery, setHeroSearchQuery] = useState('');
   const productsPerPage = 4;
   const totalProducts = mockProducts.length;
+
+  const handleHeroSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (heroSearchQuery.trim()) {
+      navigate(`/products?search=${encodeURIComponent(heroSearchQuery.trim())}`);
+    }
+  };
 
   const getCurrentProducts = () => {
     const startIndex = currentIndex;
@@ -62,9 +71,30 @@ const Home = () => {
             <h1 className="text-6xl md:text-8xl font-extrabold mb-6 tracking-tight animate-fade-in bg-clip-text text-transparent bg-gradient-to-r from-white via-white to-gray-300">
               Discover Your World
             </h1>
-            <p className="text-xl md:text-2xl mb-10 font-light text-white/95 max-w-3xl mx-auto animate-fade-in leading-relaxed">
+            <p className="text-xl md:text-2xl mb-8 font-light text-white/95 max-w-3xl mx-auto animate-fade-in leading-relaxed">
               Experience the pinnacle of luxury and innovation. Premium products that elevate your everyday lifestyle with unparalleled elegance and sophistication.
             </p>
+
+            {/* Hero Search Bar */}
+            <div className="max-w-2xl mx-auto mb-10 animate-fade-in">
+              <form onSubmit={handleHeroSearch} className="relative">
+                <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                <input
+                  type="text"
+                  placeholder="Search for products..."
+                  value={heroSearchQuery}
+                  onChange={(e) => setHeroSearchQuery(e.target.value)}
+                  className="w-full pl-12 pr-4 py-4 rounded-2xl bg-white/10 backdrop-blur-md border border-white/20 text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-white/30 focus:border-transparent text-lg"
+                />
+                <Button
+                  type="submit"
+                  className="absolute right-2 top-2 bg-white/20 hover:bg-white/30 text-white border-0 rounded-xl px-6 py-2 transition-all duration-200"
+                >
+                  Search
+                </Button>
+              </form>
+            </div>
+
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center animate-scale-in">
               <Link to="/products">
                 <Button size="lg" className="bg-white hover:bg-white/95 text-gray-900 rounded-full px-12 py-6 text-lg font-semibold shadow-2xl transition-all duration-300 ease-in-out transform hover:-translate-y-1 hover:scale-105 hover:shadow-white/20">

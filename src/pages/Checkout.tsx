@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { CreditCard, Lock, AlertCircle, MapPin, DollarSign, Truck, Clock } from 'lucide-react';
+import { CreditCard, Lock, AlertCircle, MapPin, DollarSign, Truck, Clock, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -29,12 +29,14 @@ import {
   shippingAddressSchema,
   paymentDetailsSchema,
 } from '@/features/phase2/checkout/checkoutValidation';
+import { useUser } from '@/context/UserContext';
 
 const Checkout = () => {
   const { cart, clearCart } = useCart();
   const navigate = useNavigate();
   const { convertAndFormat, currency } = useCurrency();
-  
+  const { getDefaultAddress, profile } = useUser();
+
   const [loading, setLoading] = useState(false);
   const [calculations, setCalculations] = useState<CheckoutCalculation | null>(null);
   const [paymentMethod, setPaymentMethod] = useState<'stripe' | 'paypal'>('stripe');
@@ -62,6 +64,43 @@ const Checkout = () => {
     expiryDate: '',
     cvc: '',
   });
+
+  // Auto-fill default address on component mount
+  useEffect(() => {
+    const defaultAddress = getDefaultAddress();
+    if (defaultAddress) {
+      setShipping({
+        fullName: defaultAddress.fullName,
+        addressLine1: defaultAddress.addressLine1,
+        addressLine2: defaultAddress.addressLine2 || '',
+        city: defaultAddress.city,
+        state: defaultAddress.state,
+        postalCode: defaultAddress.postalCode,
+        country: defaultAddress.country,
+        phone: defaultAddress.phone,
+      });
+    }
+  }, [getDefaultAddress]);
+
+  // Function to fill default address manually
+  const fillDefaultAddress = () => {
+    const defaultAddress = getDefaultAddress();
+    if (defaultAddress) {
+      setShipping({
+        fullName: defaultAddress.fullName,
+        addressLine1: defaultAddress.addressLine1,
+        addressLine2: defaultAddress.addressLine2 || '',
+        city: defaultAddress.city,
+        state: defaultAddress.state,
+        postalCode: defaultAddress.postalCode,
+        country: defaultAddress.country,
+        phone: defaultAddress.phone,
+      });
+      toast.success('Default address filled!');
+    } else {
+      toast.error('No default address found. Please add one in your profile.');
+    }
+  };
 
   // Fetch shipping rates when destination changes
   useEffect(() => {
@@ -252,9 +291,34 @@ const Checkout = () => {
             <div className="lg:col-span-2 space-y-6">
               {/* Shipping Address */}
               <Card className="p-6 rounded-2xl">
-                <div className="flex items-center gap-2 mb-6">
-                  <MapPin className="w-5 h-5 text-primary" />
-                  <h2 className="text-2xl font-bold text-foreground">Shipping Address</h2>
+                <div className="flex items-center justify-between mb-6">
+                  <div className="flex items-center gap-2">
+                    <MapPin className="w-5 h-5 text-primary" />
+                    <h2 className="text-2xl font-bold text-foreground">Shipping Address</h2>
+                  </div>
+                  {profile && profile.addresses.length > 0 ? (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={fillDefaultAddress}
+                      className="flex items-center gap-2"
+                    >
+                      <RefreshCw className="w-4 h-4" />
+                      Use Default Address
+                    </Button>
+                  ) : (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => navigate('/edit-profile')}
+                      className="flex items-center gap-2"
+                    >
+                      <MapPin className="w-4 h-4" />
+                      Add Default Address
+                    </Button>
+                  )}
                 </div>
                 
                 <div className="space-y-4">

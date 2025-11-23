@@ -11,6 +11,7 @@ import { SUPPORTED_CURRENCIES } from './currencyService';
 import { Button } from '@/components/ui/button';
 import {useState, useEffect} from "react";
 import { US, GB, CA, AU, JP, IN, CN, BR, MX, AE, SG } from '@/components/flags/FlagComponents';
+import { toast } from 'sonner';
 
 // Custom scrollbar styles
 const scrollbarStyles = `
@@ -34,8 +35,8 @@ const CurrencySelector = () => {
 
     const [selectedCountry, setSelectedCountry] = useState('US');
     const [showCountryDropdown, setShowCountryDropdown] = useState(false);
-
     const [countryTimeout, setCountryTimeout] = useState<NodeJS.Timeout | null>(null);
+    const [localLoading, setLocalLoading] = useState(false);
 
     // Inject styles for minimal scrollbar
     if (typeof document !== 'undefined' && !document.getElementById('minimal-scrollbar-styles')) {
@@ -78,20 +79,29 @@ const CurrencySelector = () => {
     ];
 
     const handleCurrencyChange = async (newCurrency: string) => {
+        if (localLoading || newCurrency === currency) return;
+
+        setLocalLoading(true);
         try {
-            await updateExchangeRates();
             setCurrency(newCurrency);
+            await updateExchangeRates();
+            toast.success(`Currency updated to ${newCurrency}`);
         } catch (error) {
             console.error('Failed to update currency:', error);
+            toast.error('Failed to update currency rates. Please try again.');
+        } finally {
+            setLocalLoading(false);
         }
     };
 
     const handleCountrySelect = async (countryCode: string) => {
+        if (localLoading) return;
+
         const selectedCountryData = countries.find(country => country.code === countryCode);
-        if (selectedCountryData) {
+        if (selectedCountryData && selectedCountryData.code !== selectedCountry) {
             setSelectedCountry(countryCode);
-            await handleCurrencyChange(selectedCountryData.currency);
             setShowCountryDropdown(false);
+            await handleCurrencyChange(selectedCountryData.currency);
         }
     };
 
@@ -112,8 +122,8 @@ const CurrencySelector = () => {
             onMouseEnter={handleCountryDropdownEnter}
             onMouseLeave={handleCountryDropdownLeave}
         >
-            <Button variant="ghost" size="icon" className="relative" disabled={isLoading}>
-                {isLoading ? (
+            <Button variant="ghost" size="icon" className="relative" disabled={isLoading || localLoading}>
+                {(isLoading || localLoading) ? (
                     <div className="w-5 h-5 border-2 border-gray-300 border-t-blue-500 rounded-full animate-spin" />
                 ) : (
                     (() => {
@@ -156,7 +166,7 @@ const CurrencySelector = () => {
                                     <button
                                         key={index}
                                         onClick={() => handleCountrySelect(country.code)}
-                                        disabled={isLoading}
+                                        disabled={isLoading || localLoading}
                                         className={`flex items-center gap-3 w-full px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-white/80 dark:hover:bg-gray-800/80 rounded-lg transition-all duration-200 hover:shadow-sm disabled:opacity-50 disabled:cursor-not-allowed ${
                                             selectedCountry === country.code ? 'bg-blue-50/70 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-800' : 'border border-transparent'
                                         }`}
@@ -177,7 +187,7 @@ const CurrencySelector = () => {
                 </div>
             )}
         </div>
-      <Select value={currency} onValueChange={handleCurrencyChange} disabled={isLoading}>
+      <Select value={currency} onValueChange={handleCurrencyChange} disabled={isLoading || localLoading}>
         <SelectTrigger className="w-[100px] h-9 rounded-full border-border">
           <SelectValue />
         </SelectTrigger>
