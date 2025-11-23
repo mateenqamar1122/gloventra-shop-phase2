@@ -15,6 +15,11 @@ export const SUPPORTED_CURRENCIES: Currency[] = [
   { code: 'INR', symbol: '₹', name: 'Indian Rupee', decimals: 2 },
   { code: 'AUD', symbol: 'A$', name: 'Australian Dollar', decimals: 2 },
   { code: 'CAD', symbol: 'C$', name: 'Canadian Dollar', decimals: 2 },
+  { code: 'CNY', symbol: '¥', name: 'Chinese Yuan', decimals: 2 },
+  { code: 'BRL', symbol: 'R$', name: 'Brazilian Real', decimals: 2 },
+  { code: 'MXN', symbol: '$', name: 'Mexican Peso', decimals: 2 },
+  { code: 'AED', symbol: 'د.إ', name: 'UAE Dirham', decimals: 2 },
+  { code: 'SGD', symbol: 'S$', name: 'Singapore Dollar', decimals: 2 },
 ];
 
 const STORAGE_KEY = 'gloventra_currency';
@@ -105,7 +110,7 @@ const cacheRates = (rates: ExchangeRates): void => {
   }
 };
 
-// Fetch exchange rates from backend
+// Fetch exchange rates from a free API service
 export const fetchExchangeRates = async (baseCurrency: string = 'USD'): Promise<ExchangeRates> => {
   // Check cache first
   const cached = getCachedRates();
@@ -114,23 +119,63 @@ export const fetchExchangeRates = async (baseCurrency: string = 'USD'): Promise<
   }
 
   try {
-    const response = await api.get(`/currency/rates?base=${baseCurrency}`);
-    const rates = response.data;
+    // Using exchangerate-api.com (free tier allows 1500 requests per month)
+    const response = await fetch(`https://api.exchangerate-api.com/v4/latest/${baseCurrency}`);
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const data = await response.json();
+    const rates: ExchangeRates = {
+      base: baseCurrency,
+      rates: data.rates
+    };
+
     cacheRates(rates);
     return rates;
   } catch (error) {
     console.error('Failed to fetch exchange rates:', error);
     
-    // Return cached data even if expired, or default rates
+    // Try fallback API
+    try {
+      const response = await fetch(`https://api.fixer.io/latest?base=${baseCurrency}&access_key=YOUR_API_KEY`);
+      const data = await response.json();
+
+      if (data.success) {
+        const rates: ExchangeRates = {
+          base: baseCurrency,
+          rates: data.rates
+        };
+        cacheRates(rates);
+        return rates;
+      }
+    } catch (fallbackError) {
+      console.error('Fallback API also failed:', fallbackError);
+    }
+
+    // Return cached data even if expired, or mock rates for demo
     if (cached) return cached;
     
-    // Fallback to default rates (1:1 for all currencies)
+    // Mock rates for demo purposes (approximate rates)
+    const mockRates: { [key: string]: number } = {
+      'USD': 1,
+      'EUR': 0.85,
+      'GBP': 0.73,
+      'JPY': 110,
+      'INR': 75,
+      'AUD': 1.35,
+      'CAD': 1.25,
+      'CNY': 6.45,
+      'BRL': 5.2,
+      'MXN': 20,
+      'AED': 3.67,
+      'SGD': 1.35
+    };
+
     return {
       base: baseCurrency,
-      rates: SUPPORTED_CURRENCIES.reduce((acc, curr) => {
-        acc[curr.code] = 1;
-        return acc;
-      }, {} as { [key: string]: number }),
+      rates: mockRates,
     };
   }
 };

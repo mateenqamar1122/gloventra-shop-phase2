@@ -9,7 +9,7 @@ import {
 import { useCurrencyContext } from './CurrencyContext';
 import { SUPPORTED_CURRENCIES } from './currencyService';
 import { Button } from '@/components/ui/button';
-import {useState} from "react";
+import {useState, useEffect} from "react";
 import { US, GB, CA, AU, JP, IN, CN, BR, MX, AE, SG } from '@/components/flags/FlagComponents';
 
 // Custom scrollbar styles
@@ -30,7 +30,7 @@ const scrollbarStyles = `
 `;
 
 const CurrencySelector = () => {
-  const { currency, setCurrency } = useCurrencyContext();
+  const { currency, setCurrency, updateExchangeRates, isLoading } = useCurrencyContext();
 
     const [selectedCountry, setSelectedCountry] = useState('US');
     const [showCountryDropdown, setShowCountryDropdown] = useState(false);
@@ -77,6 +77,32 @@ const CurrencySelector = () => {
         { code: 'SG', name: 'Singapore', flag: SG, currency: 'SGD' }
     ];
 
+    const handleCurrencyChange = async (newCurrency: string) => {
+        try {
+            await updateExchangeRates();
+            setCurrency(newCurrency);
+        } catch (error) {
+            console.error('Failed to update currency:', error);
+        }
+    };
+
+    const handleCountrySelect = async (countryCode: string) => {
+        const selectedCountryData = countries.find(country => country.code === countryCode);
+        if (selectedCountryData) {
+            setSelectedCountry(countryCode);
+            await handleCurrencyChange(selectedCountryData.currency);
+            setShowCountryDropdown(false);
+        }
+    };
+
+    // Sync selected country with current currency
+    useEffect(() => {
+        const countryForCurrency = countries.find(country => country.currency === currency);
+        if (countryForCurrency) {
+            setSelectedCountry(countryForCurrency.code);
+        }
+    }, [currency]);
+
   return (
     <div className="flex items-center gap-2">
       {/*<Globe className="w-4 h-4 text-muted-foreground" />*/}
@@ -86,15 +112,19 @@ const CurrencySelector = () => {
             onMouseEnter={handleCountryDropdownEnter}
             onMouseLeave={handleCountryDropdownLeave}
         >
-            <Button variant="ghost" size="icon" className="relative">
-                {(() => {
-                    const selectedCountryData = countries.find(country => country.code === selectedCountry);
-                    if (selectedCountryData) {
-                        const FlagComponent = selectedCountryData.flag;
-                        return <FlagComponent />;
-                    }
-                    return <Globe className="w-5 h-5" />;
-                })()}
+            <Button variant="ghost" size="icon" className="relative" disabled={isLoading}>
+                {isLoading ? (
+                    <div className="w-5 h-5 border-2 border-gray-300 border-t-blue-500 rounded-full animate-spin" />
+                ) : (
+                    (() => {
+                        const selectedCountryData = countries.find(country => country.code === selectedCountry);
+                        if (selectedCountryData) {
+                            const FlagComponent = selectedCountryData.flag;
+                            return <FlagComponent />;
+                        }
+                        return <Globe className="w-5 h-5" />;
+                    })()
+                )}
             </Button>
 
             {/* Invisible bridge area to prevent dropdown from closing */}
@@ -125,8 +155,9 @@ const CurrencySelector = () => {
                                 return (
                                     <button
                                         key={index}
-                                        onClick={() => setSelectedCountry(country.code)}
-                                        className={`flex items-center gap-3 w-full px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-white/80 dark:hover:bg-gray-800/80 rounded-lg transition-all duration-200 hover:shadow-sm ${
+                                        onClick={() => handleCountrySelect(country.code)}
+                                        disabled={isLoading}
+                                        className={`flex items-center gap-3 w-full px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-white/80 dark:hover:bg-gray-800/80 rounded-lg transition-all duration-200 hover:shadow-sm disabled:opacity-50 disabled:cursor-not-allowed ${
                                             selectedCountry === country.code ? 'bg-blue-50/70 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-800' : 'border border-transparent'
                                         }`}
                                     >
@@ -146,7 +177,7 @@ const CurrencySelector = () => {
                 </div>
             )}
         </div>
-      <Select value={currency} onValueChange={setCurrency}>
+      <Select value={currency} onValueChange={handleCurrencyChange} disabled={isLoading}>
         <SelectTrigger className="w-[100px] h-9 rounded-full border-border">
           <SelectValue />
         </SelectTrigger>

@@ -14,6 +14,7 @@ interface CurrencyContextType {
   exchangeRates: ExchangeRates | null;
   isLoading: boolean;
   refreshRates: () => Promise<void>;
+  updateExchangeRates: () => Promise<void>;
 }
 
 const CurrencyContext = createContext<CurrencyContextType | undefined>(undefined);
@@ -49,10 +50,13 @@ export const CurrencyProvider: React.FC<{ children: ReactNode }> = ({ children }
   useEffect(() => {
     const loadRates = async () => {
       try {
+        setIsLoading(true);
         const rates = await fetchExchangeRates('USD');
         setExchangeRates(rates);
       } catch (error) {
         console.error('Failed to load exchange rates:', error);
+      } finally {
+        setIsLoading(false);
       }
     };
 
@@ -73,6 +77,18 @@ export const CurrencyProvider: React.FC<{ children: ReactNode }> = ({ children }
     }
   };
 
+  const updateExchangeRates = async () => {
+    try {
+      setIsLoading(true);
+      const rates = await fetchExchangeRates('USD');
+      setExchangeRates(rates);
+    } catch (error) {
+      console.error('Failed to update exchange rates:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
     <CurrencyContext.Provider
       value={{
@@ -81,6 +97,7 @@ export const CurrencyProvider: React.FC<{ children: ReactNode }> = ({ children }
         exchangeRates,
         isLoading,
         refreshRates,
+        updateExchangeRates,
       }}
     >
       {children}
